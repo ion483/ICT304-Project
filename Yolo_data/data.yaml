@@ -1,0 +1,13 @@
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 4
+names: ['Frontdoor keys', 'Phone', 'Toothpaste', 'Wrist watch']
+
+roboflow:
+  workspace: cvrproject
+  project: inventory-management-project-wkm67
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/cvrproject/inventory-management-project-wkm67/dataset/3
