@@ -33,7 +33,7 @@ test_labels_path = os.path.join('Yolo_data', 'test', 'labels')
 
 start_time = time.time()
 
-results = model.predict(source=test_images_path, conf=0.55, save=True)
+results = model.predict(source=test_images_path, conf=0.36, save=True)
 
 end_time = time.time()
 
@@ -49,7 +49,9 @@ print(f"Average Inference Time: {avg_time:.2f}ms per image")
 
 # test case id 1 (accuracy)
 print("\n --- Prediction Accuracy Verification ---")
+# we are testing the precision accuracy, not recall accuracy
 total_actual_items = 0
+total_detection_items = 0
 total_correct_detections = 0
 
 for r in results:
@@ -59,35 +61,38 @@ for r in results:
 
     actual_labels = []
 
-    if os.path.exists(label_file):
+    if os.path.exists(label_file): # getting the true labels of the individual test images
         with open(label_file, 'r') as f:
             actual_labels = [line.split()[0] for line in f.readlines()]
             total_actual_items += len(actual_labels)
-
+    
     predicted_labels = [str(int(box.cls)) for box in r.boxes]
 
     for pl in predicted_labels:
+        total_detection_items += 1
         if pl in actual_labels:
             total_correct_detections += 1
             actual_labels.remove(pl)
 
 # final accuracy score
-if total_actual_items > 0:
-    accuracy = (total_correct_detections/total_actual_items) * 100
-    print(f"Total items in test set: {total_actual_items}")
+if total_detection_items > 0:
+    accuracy = (total_correct_detections/total_detection_items) * 100
+    print(f"Total actual items: {total_actual_items}")
+    print(f"Total detections: {total_detection_items}")
     print(f"Total correct detections: {total_correct_detections}")
     print(f"Final detection accuracy: {accuracy:.2f}%")
 
 
 # randomly drawing 30 images from test set for prediction
 
+random.seed(1234)
 all_test_images = [f for f in os.listdir(test_images_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 sample_size = min(len(all_test_images), 30)
 random_sample_images = random.sample(all_test_images, sample_size)
 random_sample_paths = [os.path.join(test_images_path, f) for f in random_sample_images]
 
 # run the model prediction for 30 randomly selected images
-results2 = model.predict(source=random_sample_paths, save=False)
+results2 = model.predict(source=random_sample_paths, conf=0.36, save=False)
 
 
 ground_truth_summary = {id: 0 for id in model.names.keys()}
