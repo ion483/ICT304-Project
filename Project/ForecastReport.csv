@@ -1,0 +1,5 @@
+item_id,item_name,current_stock,day1_prediction,day2_prediction,day3_prediction,avg_daily_demand,sum,confidence,forecast_date
+0,Frontdoor keys,22,5,8,6,6.3,19,83.9,03/20/2026 18:19
+1,Phone,87,18,19,17,18.0,54,75.4,03/20/2026 18:19
+2,Toothpaste,64,13,17,15,15.0,45,85.7,03/20/2026 18:19
+3,Wrist watch,44,8,12,9,9.7,29,88.3,03/20/2026 18:19
