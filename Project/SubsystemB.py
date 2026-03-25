@@ -14,6 +14,8 @@ np.random.seed(42)
 
 item_profiles = {}
 item_names = {0:'Frontdoor keys', 1:'Phone', 2:'Toothpaste', 3:'Wrist watch'}
+
+must_retrain = False
         
       
 if os.path.exists('mock_sales_history.csv'):
@@ -28,7 +30,7 @@ else:
         3: {'name': 'Wrist watch', 'base': 8, 'weekend_boost': 1.5}
     }
 
-    dates = pd.date_range(end=datetime.now(), periods=365, freq='D')
+    dates = pd.date_range(end=datetime.now()-pd.Timedelta(days=1), periods=365, freq='D')
     sales_data = []
 
     for date in dates:
@@ -46,6 +48,7 @@ else:
             })
 
     pd.DataFrame(sales_data).to_csv('mock_sales_history.csv', index=False)
+    must_retrain = True
     print("mock_sales_history.csv created")
 
 
@@ -159,10 +162,12 @@ def predict_next_3_days(item_id, current_stock):
     
     model = item_profiles[item_id]['model']
     predictions = []
+
+    last_csv_date = pd.to_datetime(sales['date'].max())
     
     temp_sales = item_sales.copy()
     for day in range(3):
-        date_to_predict = datetime.now() + pd.Timedelta(days = day)
+        date_to_predict = last_csv_date + pd.Timedelta(days = day + 1)
         weekday = date_to_predict.weekday()
         is_weekend = 1 if weekday >= 5 else 0
 
@@ -202,6 +207,10 @@ def generate_forecast():
     print("\n--- DeepTrack-Forecast Results ---")
     print("3-Day Inventory Forecast")
     print("-" * 40)
+
+    sales_history = pd.read_csv('mock_sales_history.csv')
+    last_csv_date = pd.to_datetime(sales_history['date'].max())
+    simulated_today = last_csv_date + pd.Timedelta(days=1)
     
     forecast_data = []
     
@@ -232,7 +241,7 @@ def generate_forecast():
                     'avg_daily_demand': result['avg_daily'],
                     'sum': result['sum'],
                     'confidence': result['confidence'],
-                    'forecast_date': datetime.now().strftime('%m/%d/%Y %H:%M')
+                    'forecast_date': simulated_today.strftime('%Y-%m-%d %H:%M')
                 })
             else:
                 print(f"\nInsufficient data for {item_name}")
@@ -253,7 +262,7 @@ parser = argparse.ArgumentParser(description='DeepTrack-Forecast')
 parser.add_argument('--retrain', action='store_true', help='Force retrain models')
 args = parser.parse_args()
 
-if args.retrain or not load_models():
+if args.retrain or must_retrain or not load_models():
     print("Training new models...")
     train_models()
 
